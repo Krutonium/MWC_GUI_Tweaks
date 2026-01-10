@@ -18,32 +18,24 @@ namespace GUI_Tweaks {
         public override void ModSetup()
         {
             SetupFunction(Setup.OnLoad, Mod_OnLoad);
+            SetupFunction(Setup.PostLoad, ApplySettings); // For whatever reason GUI can't be resized during OnLoad.
             SetupFunction(Setup.ModSettings, Mod_Settings);
         }
 
         private SettingsCheckBox SixteenByNine;
+        private SettingsCheckBox TwentyOneByNine;
         private SettingsCheckBox ShowDirtyness;
         private SettingsCheckBox ShowTemperature;
         private void Mod_Settings()
         {
-            SixteenByNine = Settings.AddCheckBox("SixteenByNine", "Adjust GUI for 16:9", false);
+            SixteenByNine = Settings.AddCheckBox("SixteenByNine", "Adjust GUI for 16:9", true);
+            TwentyOneByNine = Settings.AddCheckBox("TwentyOneByNine", "Adjust GUI for 21:9", false);
             ShowDirtyness = Settings.AddCheckBox("ShowDirtiness", "Show Dirtyness Meter", false);
             ShowTemperature = Settings.AddCheckBox("ShowTemperature", "Show Temperature", false);
             Settings.AddButton("Apply", ApplySettings, true);
         }
         private void ApplySettings()
         {
-            //Adjust the GUI elements to be up against the sides of a 16:9 display
-            if (SixteenByNine.GetValue())
-            {
-                HUD.transform.position = HUDStartPos + new Vector3(-3f, 0f, 0f);
-                FPS.transform.position = FPSStartPos + new Vector3(5f, 0f, 0f);
-            }
-            else
-            {
-                FPS.transform.position = FPSStartPos;
-                HUD.transform.position = HUDStartPos;
-            }
             
             DirtyMeter.SetActive(ShowDirtyness.GetValue());
             TempMeter.SetActive(ShowTemperature.GetValue());
@@ -67,6 +59,22 @@ namespace GUI_Tweaks {
             {
                 startPos += new Vector3(0, -0.4f, 0);
                 obj.transform.position = startPos;
+            }
+            //Adjust the GUI elements to be up against the sides of a 16:9 display
+            if (SixteenByNine.GetValue())
+            {
+                HUD.transform.position = HUDStartPos + new Vector3(-3f, 0f, 0f);
+                FPS.transform.position = FPSStartPos + new Vector3(5f, 0f, 0f);
+            }
+            if (TwentyOneByNine.GetValue())
+            {
+                HUD.transform.position = HUDStartPos + new Vector3(-8.5f, 0f, 0f);
+                FPS.transform.position = FPSStartPos + new Vector3(10f, 0f, 0f);
+            }
+            if(TwentyOneByNine.GetValue() == false && SixteenByNine.GetValue() == false)
+            {
+                FPS.transform.position = FPSStartPos;
+                HUD.transform.position = HUDStartPos;
             }
         }
 
@@ -92,7 +100,8 @@ namespace GUI_Tweaks {
             TempMeter = HUD.transform.Find("Temp").gameObject;
             HUDStartPos = GUI.transform.position;
             FPSStartPos = FPS.transform.position;
-            
+            //Screen.SetResolution(1920, 823, false);  //Useful for testing other aspect ratios - That one is 21:9
+    
         }
     }
 }
