@@ -11,7 +11,7 @@ namespace GUI_Tweaks {
         public override string ID => "GUI_Tweaks"; // Your (unique) mod ID 
         public override string Name => "GUI Tweaks"; // Your mod name
         public override string Author => "Krutonium"; // Name of the Author (your name)
-        public override string Version => "1.0"; // Version
+        public override string Version => "1.1"; // Version
         public override string Description => "Various GUI Tweaks"; // Short description of your mod
         public override Game SupportedGames => Game.MyWinterCar; //Supported Games
         
@@ -26,12 +26,15 @@ namespace GUI_Tweaks {
         private SettingsCheckBox TwentyOneByNine;
         private SettingsCheckBox ShowDirtyness;
         private SettingsCheckBox ShowTemperature;
+        private SettingsColorPicker TextColor;
+        
         private void Mod_Settings()
         {
             SixteenByNine = Settings.AddCheckBox("SixteenByNine", "Adjust GUI for 16:9", true);
             TwentyOneByNine = Settings.AddCheckBox("TwentyOneByNine", "Adjust GUI for 21:9", false);
             ShowDirtyness = Settings.AddCheckBox("ShowDirtiness", "Show Dirtyness Meter", false);
             ShowTemperature = Settings.AddCheckBox("ShowTemperature", "Show Temperature", false);
+            TextColor = Settings.AddColorPickerRGB("TextColor", "Text Color", Color.cyan);
             Settings.AddButton("Apply", ApplySettings, true);
         }
         private void ApplySettings()
@@ -39,8 +42,6 @@ namespace GUI_Tweaks {
             
             DirtyMeter.SetActive(ShowDirtyness.GetValue());
             TempMeter.SetActive(ShowTemperature.GetValue());
-            
-           
             
             //Lets build a Stack of Objects
             List<GameObject> ToWorkOut = new List<GameObject>();
@@ -76,15 +77,47 @@ namespace GUI_Tweaks {
                 FPS.transform.position = FPSStartPos;
                 HUD.transform.position = HUDStartPos;
             }
+            
+            foreach (var item in HUDLabels)
+            {
+                item.color = TextColor.GetValue();
+            }
+
+        }
+
+        private List<TextMesh> GetHUDLabels()
+        {
+            List<TextMesh> labels = new List<TextMesh>();
+            SearchForHUDLabels(HUD.transform, labels);
+            SearchForHUDLabels(MENU.transform, labels);
+            return labels;
+        }
+
+        private void SearchForHUDLabels(Transform parent, List<TextMesh> labels)
+        {
+            foreach (Transform child in parent)
+            {
+                TextMesh textMesh = child.GetComponent<TextMesh>();
+                // HUDLabel is in the HUD
+                // GUITextLabel is the entire Settings UI, Except
+                // GUITextlabel is for the Misc Menu. WHY TOPLESS!
+                if (textMesh != null && (child.name == "HUDLabel" || child.name == "GUITextLabel" || child.name == "GUITextlabel"))
+                {
+                    labels.Add(textMesh);
+                }
+                SearchForHUDLabels(child, labels);
+            }
         }
 
         private GameObject GUI;
         private GameObject HUD;
         private GameObject FPS;
+        private GameObject MENU;
         private GameObject SweatMeter;
         private GameObject JailMeter;
         private GameObject DirtyMeter;
         private GameObject TempMeter;
+        private List<TextMesh> HUDLabels;
 
         private static Vector3 HUDStartPos;
         private static Vector3 FPSStartPos;
@@ -93,6 +126,7 @@ namespace GUI_Tweaks {
         {
             GUI = GameObject.Find("GUI");
             HUD = GameObject.Find("HUD");
+            MENU = GameObject.Find("Systems").gameObject.transform.Find("OptionsMenu").gameObject;
             FPS = HUD.transform.Find("FPS").gameObject;
             SweatMeter = GameObject.Find("Sweat");
             DirtyMeter = HUD.transform.Find("Dirty").gameObject;
@@ -100,6 +134,7 @@ namespace GUI_Tweaks {
             TempMeter = HUD.transform.Find("Temp").gameObject;
             HUDStartPos = GUI.transform.position;
             FPSStartPos = FPS.transform.position;
+            HUDLabels = GetHUDLabels();
             //Screen.SetResolution(1920, 823, false);  //Useful for testing other aspect ratios - That one is 21:9
     
         }
