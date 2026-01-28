@@ -11,9 +11,9 @@ namespace GUI_Tweaks {
         public override string ID => "GUI_Tweaks"; // Your (unique) mod ID 
         public override string Name => "GUI Tweaks"; // Your mod name
         public override string Author => "Krutonium"; // Name of the Author (your name)
-        public override string Version => "1.1"; // Version
+        public override string Version => "1.2"; // Version
         public override string Description => "Various GUI Tweaks"; // Short description of your mod
-        public override Game SupportedGames => Game.MyWinterCar; //Supported Games
+        public override Game SupportedGames => Game.MySummerCar_And_MyWinterCar; //Supported Games
         
         public override void ModSetup()
         {
@@ -32,34 +32,48 @@ namespace GUI_Tweaks {
         {
             SixteenByNine = Settings.AddCheckBox("SixteenByNine", "Adjust GUI for 16:9", true);
             TwentyOneByNine = Settings.AddCheckBox("TwentyOneByNine", "Adjust GUI for 21:9", false);
-            ShowDirtyness = Settings.AddCheckBox("ShowDirtiness", "Show Dirtyness Meter", false);
-            ShowTemperature = Settings.AddCheckBox("ShowTemperature", "Show Temperature", false);
-            TextColor = Settings.AddColorPickerRGB("TextColor", "Text Color", Color.cyan);
+            if (ModLoader.CurrentGame == Game.MyWinterCar)
+            {
+                ShowTemperature = Settings.AddCheckBox("ShowTemperature", "Show Temperature", false);
+                ShowDirtyness = Settings.AddCheckBox("ShowDirtiness", "Show Dirtyness Meter", false);
+            }
+
+            if (ModLoader.CurrentGame == Game.MyWinterCar)
+            {
+                TextColor = Settings.AddColorPickerRGB("TextColor", "Text Color", Color.cyan);
+
+            } else
+            {
+                TextColor = Settings.AddColorPickerRGB("TextColor", "Text Color", Color.yellow);
+            }
             Settings.AddButton("Apply", ApplySettings, true);
         }
         private void ApplySettings()
         {
-            
-            DirtyMeter.SetActive(ShowDirtyness.GetValue());
-            TempMeter.SetActive(ShowTemperature.GetValue());
-            
             //Lets build a Stack of Objects
             List<GameObject> ToWorkOut = new List<GameObject>();
-            if (ShowDirtyness.GetValue())
+            if (ModLoader.CurrentGame == Game.MyWinterCar)
             {
-                ToWorkOut.Add(DirtyMeter);
-            }
-            if (ShowTemperature.GetValue())
-            {
-                ToWorkOut.Add(TempMeter);
-            }
-            ToWorkOut.Add(JailMeter);
+                DirtyMeter.SetActive(ShowDirtyness.GetValue());
+                TempMeter.SetActive(ShowTemperature.GetValue());
+                if (ShowDirtyness.GetValue())
+                {
+                    ToWorkOut.Add(DirtyMeter);
+                }
 
-            var startPos = SweatMeter.transform.position;
-            foreach (var obj in ToWorkOut)
-            {
-                startPos += new Vector3(0, -0.4f, 0);
-                obj.transform.position = startPos;
+                if (ShowTemperature.GetValue())
+                {
+                    ToWorkOut.Add(TempMeter);
+                }
+
+                ToWorkOut.Add(JailMeter);
+
+                var startPos = SweatMeter.transform.position;
+                foreach (var obj in ToWorkOut)
+                {
+                    startPos += new Vector3(0, -0.4f, 0);
+                    obj.transform.position = startPos;
+                }
             }
             //Adjust the GUI elements to be up against the sides of a 16:9 display
             if (SixteenByNine.GetValue())
@@ -128,10 +142,13 @@ namespace GUI_Tweaks {
             HUD = GameObject.Find("HUD");
             MENU = GameObject.Find("Systems").gameObject.transform.Find("OptionsMenu").gameObject;
             FPS = HUD.transform.Find("FPS").gameObject;
-            SweatMeter = GameObject.Find("Sweat");
+            if (ModLoader.CurrentGame == Game.MyWinterCar)
+            {
+                SweatMeter = GameObject.Find("Sweat");
+                TempMeter = HUD.transform.Find("Temp").gameObject;
+            }
             DirtyMeter = HUD.transform.Find("Dirty").gameObject;
             JailMeter = HUD.transform.Find("Jailtime").gameObject;
-            TempMeter = HUD.transform.Find("Temp").gameObject;
             HUDStartPos = GUI.transform.position;
             FPSStartPos = FPS.transform.position;
             HUDLabels = GetHUDLabels();
